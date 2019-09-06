@@ -10,7 +10,7 @@ set(vis-asgmt-01_INCLUDE_DIRS "")
 foreach(_headerFile ${vis-asgmt-01_HEADERS})
   get_filename_component(_dir ${_headerFile} PATH)
   list (APPEND vis-asgmt-01_INCLUDE_DIRS ${_dir})
-endforeach()\
+endforeach()
 
 list(REMOVE_DUPLICATES vis-asgmt-01_INCLUDE_DIRS)
 
