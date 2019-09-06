@@ -25,8 +25,23 @@ void draw_path(cv::Mat& image, cv::Mat& output, std::vector<coords> data_set)
 
 }
 
+void test_map()
+{
+    std::map<int,int> test;
+    
+    
+    test[1] = 5;
+    std::map<int,int>::iterator it = test.begin();
+    std::cout<<"Value of key: "<< test[1] << std::endl;
+    test[2] = 5;
+    std::cout<<"Value of key: "<< test[2] << std::endl;
+    test.insert(std::pair<int,int>(2,2));
+    std::cout<<"Value of key: "<< test[2] << std::endl;
+}
+
 int main()
 {
+    test_map();
     cv::Mat map = cv::imread("assets/environ-01.png");
     if (map.empty())
     {
@@ -39,7 +54,7 @@ int main()
     for(int idx = 0; idx < 100; idx++)
     {
         //insert_goal(new_map,new_map, coords{idx,idx}, RGB_col{.R = 128, .G=0, .B=0} );
-        insert_start(new_map,new_map, coords{idx,idx}, RGB8b{.R = 0, .G=0, .B=0} );
+        insert_start(new_map,new_map, coords{idx,idx}, { 0,0,0} );
     }
     
     cv::imshow("rotated in_imag twice", new_map);
