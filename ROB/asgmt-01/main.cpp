@@ -2,29 +2,16 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
 #include <tuple>
+#include "src/bug.h"
 
-struct coords
-{
-    int x, y;
-};
 
-struct RGB_col
-{
-    uchar R,G,B;
-};
 
-void insert_goal(cv::Mat& image,cv::Mat& output, coords coordinate, RGB_col color)
+
+
+void insert_start(cv::Mat&  image, cv::Mat& output, coords coordinate, RGB8b color)
 {
     output = image.clone();
-    output.at<cv::Vec3b>(coordinate.y, coordinate.x)[2] = color.R;
-    output.at<cv::Vec3b>(coordinate.y, coordinate.x)[1] = color.G;
-    output.at<cv::Vec3b>(coordinate.y, coordinate.x)[0] = color.B;
-    output.at<cv::Vec3b>(cv::Point2i(coordinate.y, coordinate.x)) = cv::Vec3b{1,2,3};
-}
-void insert_start(cv::Mat&  image, cv::Mat& output, coords coordinate, RGB_col color)
-{
-    output = image.clone();
-    output.ptr<RGB_col>(coordinate.y)[coordinate.x] = color;
+    output.ptr<RGB8b>(coordinate.y)[coordinate.x] = color;
 }
 
 void draw_path(cv::Mat& image, cv::Mat& output, std::vector<coords> data_set)
@@ -52,7 +39,7 @@ int main()
     for(int idx = 0; idx < 100; idx++)
     {
         //insert_goal(new_map,new_map, coords{idx,idx}, RGB_col{.R = 128, .G=0, .B=0} );
-        insert_start(new_map,new_map, coords{idx,idx}, RGB_col{.R = 0, .G=0, .B=0} );
+        insert_start(new_map,new_map, coords{idx,idx}, RGB8b{.R = 0, .G=0, .B=0} );
     }
     
     cv::imshow("rotated in_imag twice", new_map);
