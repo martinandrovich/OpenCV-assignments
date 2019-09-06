@@ -7,14 +7,17 @@
 
 cv::Mat& rotate(cv::Mat &image, cv::Mat &output, int rotation=0)
 {
-    cv::Mat cp_image = image.clone();
+    cv::Mat cp_image = cv::Mat(image.cols,image.rows,image.type());
+    std::cout << cp_image.size()<< image.size()<<std::endl;
     for(int x = 0; x < image.rows ; x++)
     {
         for(int y = 0; y < image.cols; y++)
         {
+            //cp_image.at<cv::Vec3b>(cv::Point2i(x,image.rows-1 -y)) = image.at<cv::Vec3b>(cv::Point2i(y,x));
             for(int channel = 0; channel < image.channels(); channel++)
             {
-                cp_image.at<cv::Vec3b>(image.rows-1 -y,x)[channel] = image.at<cv::Vec3b>(x,y)[channel];
+                cp_image.at<cv::Vec3b>(cp_image.rows-1 -y,x)[channel] = image.at<cv::Vec3b>(x,y)[channel];
+                //cp_image.at<cv::Vec3b>(x,y)[channel] = image.at<cv::Vec3b>(x,y)[channel];
             }            
         }    
     }
@@ -23,6 +26,10 @@ cv::Mat& rotate(cv::Mat &image, cv::Mat &output, int rotation=0)
 }
 
 
+void rotate_Smart(cv::Mat &image,cv::Mat &output)
+{
+    cv::transpose(image,output);
+}
 void InvertColour( cv::Mat& input_image, cv::Mat& output_image )
 {
  CV_Assert( input_image.type() == CV_8UC3 );
@@ -63,19 +70,18 @@ int main()
         return 1;
     }
     std::cout<<"Hello world xD "<<test<<std::endl;
-    cv::namedWindow("Image");
-    // cv::namedWindow("Image");
-    // cv::Mat out_image;
-    // InvertColour(in_image, out_image);
-    // cv::imshow("Image", in_image);
-    // cv::imshow("Inverted Image", out_image);
-    // rotate(out_image, out_image);
-    // cv::imshow("rotated Image", out_image);
-    // rotate(out_image, out_image);
-    // cv::imshow("rotated in_imag twice", out_image);
+    //cv::namedWindow("Image");
+    cv::Mat out_image;
+    cv::imshow("Original Image",in_image);
+    InvertColour(in_image, out_image);
+    cv::imshow("Image", out_image);
+    rotate(out_image, out_image);
+    cv::imshow("rotated Image", out_image);
+    //rotate(in_image, out_image);
+     //cv::imshow("rotated in_imag twice", out_image);
     
-    Segment_spoons(in_image,120);
-    cv::imshow("Segmented Image", in_image);
+    //Segment_spoons(in_image,120);
+    //cv::imshow("Segmented Image", in_image);
     cv::waitKey();
     return test;
 
