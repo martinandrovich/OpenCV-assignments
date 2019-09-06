@@ -75,7 +75,7 @@ int main()
     // cv::imshow("rotated in_imag twice", out_image);
     
     Segment_spoons(in_image,120);
-    cv::imshow("rotated in_imag twice", in_image);
+    cv::imshow("Segmented Image", in_image);
     cv::waitKey();
     return test;
 
