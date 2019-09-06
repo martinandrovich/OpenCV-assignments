@@ -25,23 +25,26 @@ void draw_path(cv::Mat& image, cv::Mat& output, std::vector<coords> data_set)
 
 }
 
-void test_map()
+void test_Bug(cv::Mat& map)
 {
-    std::map<int,int> test;
+    RGB8b starcol = {255,0,0};
+    RGB8b goalcol = {0,255,0};
+    RGB8b terrain_col = {.B = 0, .G = 255, .R=0 };
+    terrrain dirt = {terrain_col,1,false};
+    std::cout << "ret rgb " << dirt.ret_rgb() << "Ret val:" << dirt.ret_val() << std::endl;
+    Bug UUT("Test1", map, starcol, goalcol);
+    for(int x = 0; x < 100; x++)
+    {
+        UUT.insert_tile(dirt,coords{20,x} );
+    }
     
+    cv::imshow("Bug_map",UUT.get_map());
     
-    test[1] = 5;
-    std::map<int,int>::iterator it = test.begin();
-    std::cout<<"Value of key: "<< test[1] << std::endl;
-    test[2] = 5;
-    std::cout<<"Value of key: "<< test[2] << std::endl;
-    test.insert(std::pair<int,int>(2,2));
-    std::cout<<"Value of key: "<< test[2] << std::endl;
 }
 
 int main()
 {
-    test_map();
+    
     cv::Mat map = cv::imread("assets/environ-01.png");
     if (map.empty())
     {
@@ -49,7 +52,7 @@ int main()
         return 1;
     }
     cv::Mat new_map = map.clone();
-    
+    test_Bug(map);
     //insert_goal(map,new_map, coords{idx,idx}, RGB_col{.R = 128, .G=0, .B=0} );
     for(int idx = 0; idx < 100; idx++)
     {

@@ -12,16 +12,30 @@ struct coords
 };
 
 struct RGB8b
-{
+{   
     uchar B,G,R;
+};
+
+union RGBWrap
+{
+    RGB8b rgb;  
+    int value;      
 };
 
 
 struct terrrain
 {
-    cv::Vec3b color;
+    RGBWrap color;
     int weight;
     bool walkable;
+    bool operator<(const terrrain& obj1)
+    {
+        int* tmp = (int*)(&(this->color));
+        //return(static_cast<int>(this->color) )
+    }
+    int ret_val(){return(this->color.value);}
+    int ret_rgb(){RGB8b tmp = {2,1,1};
+    return *((int*)(&(tmp)));}
 
 };
 
@@ -53,7 +67,7 @@ class Bug
     RGB8b m_draw_col;
     const std::string& m_name;
     coords m_coordinate;
-    std::map<cv::Vec3b, std::pair<int,bool>> m_terrain_tiles;
+    std::map<RGB8b, std::pair<int,bool>> m_terrain_tiles;
     cv::Mat m_map;
 
 
