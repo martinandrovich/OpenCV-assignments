@@ -8,13 +8,13 @@
 
 
 
-void insert_start(cv::Mat&  image, cv::Mat& output, coords coordinate, ROBtek::RGB8b color)
+void insert_start(cv::Mat&  image, cv::Mat& output, ROBtek::coords coordinate, ROBtek::RGB8b color)
 {
     output = image.clone();
     output.ptr<ROBtek::RGB8b>(coordinate.y)[coordinate.x] = color;
 }
 
-void draw_path(cv::Mat& image, cv::Mat& output, std::vector<coords> data_set)
+void draw_path(cv::Mat& image, cv::Mat& output, std::vector<ROBtek::coords> data_set)
 {
     output = image.clone();
     for(auto& point:data_set)
@@ -33,23 +33,20 @@ void test_Bug(cv::Mat& map)
     ROBtek::RGB8b terrain_col_blue = ROBtek::make_RGB(0,0,255);
     ROBtek::RGB8b terrain_col_red = ROBtek::make_RGB(255,0,0);
     ROBtek::RGB8b terrain_col_yellow = ROBtek::make_RGB(255,255,0);
-    ROBtek::terrrain grass = {terrain_col_green,1.5,true};
-    ROBtek::terrrain water = {terrain_col_blue,10,false};
-    ROBtek::terrrain fire = {terrain_col_red,100,false};
-    ROBtek::terrrain lemon = {terrain_col_yellow,1,true};
-    grass.print_terain_info();
-    water.print_terain_info();
-    fire.print_terain_info();
-    lemon.print_terain_info();
+    ROBtek::tile grass = {{terrain_col_green,1.5,true}, {0,0},{20,60} };
+    ROBtek::tile water = {{terrain_col_blue,1.5,true}, {20,20},{20,20} };
+    ROBtek::tile fire = {{terrain_col_red,1.5,true}, {40,40},{20,20} };
+    ROBtek::tile lemon = {{terrain_col_yellow,1.5,true}, {60,60},{20,20} };
+
+    std::cout<<"Tile size:" << grass.size.x << " X "<< grass.size.y << std::endl;
     Bug UUT("Test1", map, grass, lemon);
-    for(int x = 0; x < 100; x++)
-    {
-        std::cout << "Size of map is: "<< UUT.get_known_terain_size() << std::endl; 
-        UUT.insert_terrain(grass,coords{20,x} );
-        UUT.insert_terrain(water,coords{30,x} );
-        UUT.insert_terrain(fire,coords{40,x} );
-        UUT.insert_terrain(lemon,coords{50,x} );
-    }
+        
+    
+    UUT.insert_tile(grass);
+    UUT.insert_tile(water);
+    UUT.insert_tile(fire);
+    UUT.insert_tile(lemon);
+
     UUT.print_known_terains();
     
     cv::imshow("Bug_map",UUT.get_map());
@@ -72,10 +69,10 @@ int main()
     for(int idx = 0; idx < 100; idx++)
     {
         //insert_goal(new_map,new_map, coords{idx,idx}, RGB_col{.R = 128, .G=0, .B=0} );
-        insert_start(new_map,new_map, coords{idx,idx}, { 0,0,0} );
+        insert_start(new_map,new_map, ROBtek::coords{idx,idx}, { 0,0,0} );
     }
     
-    //cv::imshow("rotated in_imag twice", new_map);
+    cv::imshow("rotated in_imag twice", map);
     // cv::imshow("Image", in_image);
     // cv::imshow("Inverted Image", out_image);
     // rotate(out_image, out_image);

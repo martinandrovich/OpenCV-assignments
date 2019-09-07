@@ -8,19 +8,25 @@ namespace ROBtek
     }
 }
 
-Bug::Bug(const std::string& name,cv::Mat& map, ROBtek::terrrain start_terrain, ROBtek::terrrain goal_terrain):
+Bug::Bug(const std::string& name,cv::Mat& map, ROBtek::tile start_tile, ROBtek::tile goal_tile):
     m_name{name},
     m_map{map.clone()}
     {
-        this->add_terrain(start_terrain);
-        this->add_terrain(goal_terrain);
+        this->insert_tile(start_tile);
+        this->insert_tile(goal_tile);
 
     }
 
-void Bug::insert_terrain(ROBtek::terrrain terrain, coords coordinate)
-{
-    this->m_map.at<ROBtek::RGB8b>(cv::Point2i(coordinate.y, coordinate.x)) = terrain.color;
-    this->m_terrains.insert(std::make_pair( terrain.ret_val(), std::pair<double,bool>(terrain.weight,terrain.walkable) ));
+void Bug::insert_tile(ROBtek::tile tile)
+{    
+    for(int x = 0; x < tile.size.x; x++)
+    {
+        for(int y = 0; y < tile.size.y; y++)
+        {
+            this->m_map.at<ROBtek::RGB8b>(cv::Point2i(tile.coordinate.y + x , tile.coordinate.x + y)) = tile.terrain_t.color;    
+        }
+    }
+    this->m_terrains.insert(std::make_pair( tile.terrain_t.ret_val(), std::pair<double,bool>(tile.terrain_t.weight,tile.terrain_t.walkable) ));         
 }
 
 void Bug::add_terrain(ROBtek::terrrain terrain)
@@ -39,7 +45,14 @@ void Bug::print_known_terains()
     }
 }
 
-void Bug::_inspect_adjacent_terrain()
+ROBtek::tile Bug::_determine_tile(ROBtek::coords coordinate)
+{
+    //std::
+
+
+}
+
+void Bug::_inspect_adjacent_tiles()
 {
     
 

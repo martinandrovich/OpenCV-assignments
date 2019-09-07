@@ -31,24 +31,28 @@ namespace ROBtek
         void print_terain_info(){ std::cout 
         << "Terrain color: "
         << this->ret_val()
-        << "\nTerrain weight: "<< this->weight 
-        << "\nTerrain walkable? "<< std::boolalpha <<this->walkable << std::endl;  }
+        << " \nTerrain weight: "<< this->weight 
+        << " \nTerrain walkable? "<< std::boolalpha <<this->walkable << std::endl;  }
     };
+
+    struct coords
+    {
+        int x, y;
+    };
+
+   
 
     struct tile
     {
-        terrrain tile_t;
-        struct size
+        terrrain terrain_t;       
+        coords coordinate;
+        struct 
         {
             int x,y;
-        };
+        }size;
     };
+};
 
-};
-struct coords
-{
-    int x, y;
-};
 
 
 
@@ -58,13 +62,13 @@ struct coords
 class Bug
 {
     public:
-    Bug(const std::string& name,cv::Mat& map, ROBtek::terrrain start_terrain, ROBtek::terrrain goal_terrain);
+    Bug(const std::string& name,cv::Mat& map, ROBtek::tile start_tile, ROBtek::tile goal_tile);
     
     
     int get_walked_distance(){ return m_walked_distance;}
     const cv::Mat& get_map()const {return m_map;}
     const std::string& get_name() const {return m_name;}
-    void insert_terrain(ROBtek::terrrain terrain, coords coordinate);
+    void insert_tile(ROBtek::tile tile);
     int get_known_terain_size(){return m_terrains.size();} 
     void add_terrain(ROBtek::terrrain terrain);
     void print_known_terains();
@@ -74,14 +78,17 @@ class Bug
     virtual void _path_planning();
     virtual void _reconstruct_closest_route();
     virtual int _get_slope_to_goal();
-    virtual void _inspect_adjacent_terrain();
+    virtual void _inspect_adjacent_tiles();
+    ROBtek::tile _determine_tile(ROBtek::coords coordinate);
+    
 
     int m_walked_distance;
-    ROBtek::terrrain adjacent_terrain[4];
+    ROBtek::tile adjacent_tiles[4];
     int m_mline;
     int m_current_distance_from_goal;
+    int m_tile_size_x, m_tile_size_y;
     const std::string& m_name;
-    coords m_coordinate;
+    ROBtek::coords m_position;
     std::unordered_map<uint, std::pair<double,bool>> m_terrains;
     cv::Mat m_map;
 
