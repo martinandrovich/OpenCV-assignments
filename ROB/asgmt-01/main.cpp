@@ -1,23 +1,13 @@
-#include <string>
-
-struct coords
-{
-	int x, y;
-};
-
-struct path
-{
-	coords begin;
-	coords end;
-	std::vector<coords> path;
-}
-
-void insert_goal()
-{
-
-}
+#include "src/core.h"
 
 int main()
 {
+	std::cout << "Hello world\n";
+
+	test();
+
+	cv::Mat image;
+
+	std::cin.get();
 	return 0;
 }
