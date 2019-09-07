@@ -1,7 +1,12 @@
-# ignore CMake build paths
+# CMake build paths
 build/
 CMakeFiles/
 
-# ignore VSCode folders
+# VSCode folders
 .vscode/
 
+
+# executables
+*.o
+*.out
+*.exe
