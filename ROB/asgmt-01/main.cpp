@@ -4,10 +4,7 @@ int main()
 {
 	std::cout << "Hello world\n";
 
-	test();
+	draw_test();
 
-	cv::Mat image;
-
-	std::cin.get();
 	return 0;
 }

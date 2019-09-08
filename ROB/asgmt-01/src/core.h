@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unistd.h>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -19,4 +20,7 @@ struct path
 	std::vector<coords> path;
 };
 
-void test();
+void bug1();
+void draw_test();
+void draw_pixel(cv::Mat &img, cv::Point pos, cv::Vec3b color = {0, 0, 0});
+void draw_line(cv::Mat &img, cv::Point2i begin, cv::Point2i end, cv::Vec3b color = {0, 0, 0});
