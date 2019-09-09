@@ -102,10 +102,8 @@ void callback_color_picker(int e, int x, int y, int s, void *data)
 		auto S = int(p[1]);
 		auto L = int(p[2]);
 		auto LS = (float)L / S;
-		auto P = percentage_color(*((cv::Mat *)data), p);
 
-		std::cout << H << " " << S << " " << L << " | L/S: " << LS << " | %: " << P
-				  << "\n";
+		std::cout << H << " " << S << " " << L << " | L/S: " << LS << "\n";
 	}
 }
 
@@ -221,11 +219,14 @@ cv::Mat segment_image(cv::Mat &img)
 
 	// show original image
 	cv::namedWindow("Original Image");
+	cv::moveWindow("Original Image", 20, 20);
 	cv::imshow("Original Image", img);
 	cv::waitKey();
 
+	// variables
 	uchar H, S, L;
 	float LS;
+	bool has_spoon = false;
 	int red_count = 0;
 
 	// segment the spoon by color descriptor (boolean)
@@ -246,19 +247,37 @@ cv::Mat segment_image(cv::Mat &img)
 		}
 	}
 
+	// log number of matching pixels
 	std::cout << "Found " << red_count << " matching pixels.\n";
 
+	// check ranges
 	if (red_count > 4079 && red_count < 11952)
 	{
 		std::cout << "Found a single spoon!\n";
+		has_spoon = true;
 	}
 	else
 	{
 		std::cout << "Mistake!\n";
+		has_spoon = false;
 	}
+
+	// print text on original image
+	cv::putText(
+		img,
+		(has_spoon) ? "status: correct" : "status: incorrect",
+		cv::Point(20, 40),
+		cv::FONT_HERSHEY_DUPLEX,
+		0.80,
+		CV_RGB(255, 255, 255),
+		1
+	);
+
+	cv::imshow("Original Image", img);
 
 	// show segmented image
 	cv::namedWindow("Segmented Image");
+	cv::moveWindow("Segmented Image", 20 + img.cols + 20, 20);
 	cv::imshow("Segmented Image", img_seg);
 
 	// bind color picker callback
@@ -327,7 +346,7 @@ void babyfood_segment_demo()
 int main()
 {
 	// log information
-	std::cout << "Hello world!\n";
+	std::cout << "RCA-VIS asgmt-01\n";
 
 	// rotation demo (CCW)
 	//astronaut_rotate_demo(rotdir::ccw);
@@ -337,11 +356,12 @@ int main()
 	//cv::destroyAllWindows();
 
 	// color picker demo
-	// color_picker("assets/BabyFood/BabyFood-Sample2.JPG", cv::COLOR_BGR2HLS);
-	// cv::destroyAllWindows();
+	//color_picker("assets/BabyFood/BabyFood-Sample2.JPG", cv::COLOR_BGR2HLS);
+	//cv::destroyAllWindows();
 
 	// red spoon segmentation demo
-	// babyfood_segment_demo();
+	babyfood_segment_demo();
+	cv::destroyAllWindows();
 
 	return 0;
 }
