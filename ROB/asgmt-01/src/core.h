@@ -8,6 +8,8 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+#include "kernel.h"
+
 struct coords
 {
 	int x, y;
@@ -20,7 +22,8 @@ struct path
 	std::vector<coords> path;
 };
 
-void bug1();
 void draw_test();
 void draw_pixel(cv::Mat &img, cv::Point pos, cv::Vec3b color = {0, 0, 0});
 void draw_line(cv::Mat &img, cv::Point2i begin, cv::Point2i end, cv::Vec3b color = {0, 0, 0});
+
+void bug1(cv::Mat& img);
