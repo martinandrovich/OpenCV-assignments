@@ -64,12 +64,38 @@ cv::Point kernel::find_nearest(cv::Point start_pos, cv::Point target_pos)
 	return (pts.begin()->second);
 }
 
-bool kernel::is_reachable(cv::Point p)
+bool kernel::is_reachable(cv::Point start_pos, cv::Point target_pos)
 {	
-	return true;
-}
+	int match = 0;
 
-void kernel::move_to(cv::Point p)
-{
-	return;
+	// points of interst
+
+	// [ ][T][ ]
+	// [L][S][R]
+	// [ ][B][X]
+
+	std::vector<cv::Point> pts = 
+	{
+		{start_pos.x, start_pos.y - 1},		// T
+		{start_pos.x, start_pos.y + 1},		// B
+		{start_pos.x - 1, start_pos.y},		// L
+		{start_pos.x + 1, start_pos.y},		// R
+		{target_pos.x, target_pos.y},		// X
+	};
+
+	// run kernel algoritm
+	// increment match if a point of interest is black pixel
+	kernel::scan(start_pos, [&](cv::Point& p, cv::Vec3b& v) {
+
+		if (std::any_of(pts.begin(), pts.end(), [&](auto& p2) {
+			return (p2 == p && !(v[0] + v[1] + v[2]));
+		}))
+		{
+			match++;
+			std::cout << ansi::kernel << "found obstacle at: " << p << "\n";
+		}
+
+	});
+
+	return !match;
 }

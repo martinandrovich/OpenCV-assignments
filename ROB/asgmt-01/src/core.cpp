@@ -79,6 +79,14 @@ void draw_line(cv::Mat &img, cv::Point2i begin, cv::Point2i end, cv::Vec3b color
 	}
 }
 
+void draw_img(cv::Mat& img, cv::Point cur_pos)
+{	
+	cv::namedWindow("bug");
+	draw_pixel(img, cur_pos, {255, 0, 0});
+	cv::imshow("bug", img);
+	cv::waitKey(1);
+}
+
 void bug1(cv::Mat& img)
 {
 	// states
@@ -93,7 +101,7 @@ void bug1(cv::Mat& img)
 	state bug_state = MOVE_TOWARDS_GOAL;
 	cv::Point pos_cur = {25, 25};
 	cv::Point pos_next;
-	cv::Point pos_goal = {100, 100};
+	cv::Point pos_goal = {200, 200};
 
 	// prepare kernel
 	kernel::load_img(img);
@@ -103,24 +111,26 @@ void bug1(cv::Mat& img)
 	{
 		case MOVE_TOWARDS_GOAL:
 		{
+			// draw image
+			draw_img(img, pos_cur);
+
 			// determine direction of shortest distance
 			pos_next = kernel::find_nearest(pos_cur, pos_goal);
 
 			// check if desired point is reachable (no obstacles)
 			// change state if not
-			if(!kernel::is_reachable(pos_next))
+			if(!kernel::is_reachable(pos_cur, pos_next))
 			{
 				bug_state = CIRCUMNAVIGATE_OBSTACLE;
 				break;
 			}
 
 			// step
-			std::cout << "kernel: moving from: " << pos_cur << " to " << pos_next << "\n";
-			draw_pixel(img, pos_cur, {255, 0, 0});
+			std::cout << ansi::kernel << "moving from: " << pos_cur << " to " << pos_next << "\n";
 			pos_cur = pos_next;
 
 			// delay
-			usleep(100000);
+			usleep(50000);
 			
 			break;
 		}
@@ -128,6 +138,7 @@ void bug1(cv::Mat& img)
 		case CIRCUMNAVIGATE_OBSTACLE:
 		{
 			std::cout << "CIRCUM YEEE\n";
+			return;
 			break;
 		}
 
