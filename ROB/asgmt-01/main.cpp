@@ -1,15 +1,11 @@
-#include "src/core.h"
+#include "src/bug.h"
 
 int main()
 {
-	std::cout << "Hello world\n";
-
-	//draw_test();
-
+	std::cout << "bug algorithms, v. 1.0\n\n";
+	
 	cv::Mat img = cv::imread("assets/environ-01.png");
-
-	draw_img(img, {0,0});
-	bug1(img);
+	init_bug(img);
 
 	return 0;
 }

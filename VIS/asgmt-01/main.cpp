@@ -352,12 +352,12 @@ int main()
 	//astronaut_rotate_demo(rotdir::ccw);
 
 	// histogram demo
-	//histogram("assets/BabyFood/BabyFood-Sample1.JPG");
-	//cv::destroyAllWindows();
+	histogram("assets/BabyFood/BabyFood-Sample1.JPG");
+	cv::destroyAllWindows();
 
 	// color picker demo
-	//color_picker("assets/BabyFood/BabyFood-Sample2.JPG", cv::COLOR_BGR2HLS);
-	//cv::destroyAllWindows();
+	color_picker("assets/BabyFood/BabyFood-Sample2.JPG", cv::COLOR_BGR2HLS);
+	cv::destroyAllWindows();
 
 	// red spoon segmentation demo
 	babyfood_segment_demo();
