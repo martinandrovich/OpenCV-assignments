@@ -1,11 +1,5 @@
 #include "kernel.h"
 
-constexpr auto KERNEL_WIDTH 	= 3;
-constexpr auto KERNEL_HEIGHT 	= 3;
-
-//constexpr auto is_black_pixel(cv::Vec3b& v) { return ((v[0] + v[1] + v[2]) == 255 * 3); }
-//constexpr bool is_white_pixel(cv::Vec3b& v) { return (v[0] + v[1] + v[2]) == 0; };
-
 #define white_pixel ((v[0] + v[1] + v[2]) == 255 * 3)
 #define is_black_pixel ((v[0] + v[1] + v[2]) == 0)
 
@@ -16,12 +10,15 @@ namespace kernel
 	int num_steps = 0;
 }
 
-void kernel::load_img(cv::Mat& img)
+void
+kernel::load_img(cv::Mat& img)
 {
+	num_steps = 0;
 	kernel::img = img;
 }
 
-void kernel::scan(cv::Point pos_start, std::function<void(cv::Point&, cv::Vec3b&)> callback)
+void
+kernel::scan(cv::Point pos_start, std::function<void(cv::Point&, cv::Vec3b&)> callback)
 {
 	// make sure that there is an image to scan
 	assert(!kernel::img.empty());
@@ -109,7 +106,6 @@ kernel::find_nearest(cv::Point pos_start, cv::Point pos_target)
 	float dist;
 
 	kernel::scan(pos_start, [&](cv::Point& p, cv::Vec3b& v) {
-		//dist = sqrt(pow(abs(pos_target.x - p.x), 2) + pow(abs(pos_target.y - p.y), 2));
 		dist = kernel::distance(pos_target, p);
 		pts[dist] = cv::Point(p.x, p.y);
 
@@ -167,42 +163,6 @@ kernel::check_obstacle(cv::Point pos_start, cv::Point pos_target)
 	
 }
 
-bool is_reachable_old(cv::Point pos_start, cv::Point pos_target)
-{	
-	int match = 0;
-
-	// points of interst
-
-	// [ ][T][ ]
-	// [L][S][R]
-	// [ ][B][X]
-
-	std::vector<cv::Point> pts = 
-	{
-		{pos_start.x, pos_start.y - 1},		// T
-		{pos_start.x, pos_start.y + 1},		// B
-		{pos_start.x - 1, pos_start.y},		// L
-		{pos_start.x + 1, pos_start.y},		// R
-		{pos_target.x, pos_target.y},		// X
-	};
-
-	// run kernel algoritm
-	// increment match if a point of interest is black pixel
-	kernel::scan(pos_start, [&](cv::Point& p, cv::Vec3b& v) {
-
-		if (std::any_of(pts.begin(), pts.end(), [&](auto& p2) {
-			return (p2 == p && !(v[0] + v[1] + v[2]));
-		}))
-		{
-			match++;
-			std::cout << ansi::kernel << "found obstacle at: " << p << "\n";
-		}
-
-	});
-
-	return !match;
-}
-
 std::tuple<cv::Point, cv::Point>
 kernel::check_corner(cv::Point pos_start, cv::Point pos_next)
 {
@@ -234,8 +194,6 @@ kernel::check_corner(cv::Point pos_start, cv::Point pos_next)
 
 	kernel::scan(pos_start, [&](cv::Point& p, cv::Vec3b& v) {
 
-		//std::cout << p << " - " << v << " - " << white_pixel << "\n";
-
 		// black pixel matching points of interst
 		if(std::find(poi_black.begin(), poi_black.end(), p) != poi_black.end() && is_black_pixel)
 			pos_srfaces.push_back(p);
@@ -248,8 +206,8 @@ kernel::check_corner(cv::Point pos_start, cv::Point pos_next)
 
 	// find intersection
 	// initialize to default values in case none found
-	cv::Point intersection = pos_next;
-	cv::Point move_dir = pos_next - pos_start;
+	cv::Point intersection 	= pos_next;
+	cv::Point move_dir 		= pos_next - pos_start;
 
 	for (auto& sur : pos_srfaces)
 	{
@@ -266,7 +224,6 @@ kernel::check_corner(cv::Point pos_start, cv::Point pos_next)
 
 	// return tuple
 	return {intersection, move_dir};
-
 }
 
 cv::Point
@@ -279,7 +236,7 @@ kernel::check_wall(cv::Point pos_start, cv::Point move_dir)
 
 		std::cout << ansi::kernel << "found wall at: " << (pos_start + move_dir) << std::endl;
 
-		move_dir = { move_dir.y, move_dir.x };
+		move_dir  = { move_dir.y, move_dir.x };
 		move_dir *= (check_pixel(pos_start + move_dir, [&](auto& p, auto& v){ return is_black_pixel; })) ? -1 : 1;
 	}
 

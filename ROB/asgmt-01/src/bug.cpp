@@ -3,7 +3,7 @@
 #define delay_base 50000
 #define delay usleep(delay_base * 0.05)
 
-void bug1a(cv::Mat& img)
+void bug1_old(cv::Mat& img, cv::Point pos_start, cv::Point pos_target)
 {
 	// states
 	enum state
@@ -15,9 +15,9 @@ void bug1a(cv::Mat& img)
 
 	// variables
 	state 		bug_state = MOVE_TOWARDS_GOAL;
-	cv::Point 	pos_cur = {10, 10};
+	cv::Point 	pos_cur = pos_start;
 	cv::Point 	pos_next;
-	cv::Point 	pos_goal = {20, 400};
+	cv::Point 	pos_goal = pos_target;
 	cv::Point 	move_dir;
 
 	cv::Point 	pos_wall_start;
@@ -53,7 +53,7 @@ void bug1a(cv::Mat& img)
 
 			// step
 			std::cout << ansi::kernel << "moving from: " << pos_cur << " to " << pos_next << "\n";
-			pos_cur = pos_next;
+			kernel::move(pos_cur, pos_next);
 
 			// delay
 			delay;
@@ -96,7 +96,7 @@ void bug1a(cv::Mat& img)
 			}
 
 			std::cout << ansi::kernel << "moving from: " << pos_cur << " to " << pos_next << " with direction " << move_dir << "\n";
-			pos_cur = pos_next;
+			kernel::move(pos_cur, pos_next);
 
 			// record point with shortest distance to goal
 			circnav.emplace_back(pos_cur, kernel::distance(pos_cur, pos_goal));
@@ -113,7 +113,7 @@ void bug1a(cv::Mat& img)
 			{
 				pos_next = pos->first;
 				std::cout << ansi::kernel << "moving from: " << pos_cur << " to " << pos_next << " with direction " << move_dir << "\n";
-				pos_cur = pos_next;
+				kernel::move(pos_cur, pos_next);
 				draw_img(img, pos_cur);
 				delay;
 			}
@@ -125,6 +125,11 @@ void bug1a(cv::Mat& img)
 	
 		default: break;
 	}
+
+	// done, show image and number of steps
+	std::cout << "\ncompleted bug1_old using " << kernel::get_num_steps() << " steps." << std::endl;
+	cv::waitKey();
+
 }
 
 void init_bug(cv::Mat& img)
@@ -193,6 +198,8 @@ void init_bug(cv::Mat& img)
 	std::cout << "Press ANY KEY to begin." << std::endl;
 	cv::waitKey();
 	bug1(img, pos_start, pos_target);
+	kernel::load_img(img);
+	bug1_old(img, pos_start, pos_target);
 }
 
 void bug1(cv::Mat& img, cv::Point pos_start, cv::Point pos_target)
@@ -312,7 +319,7 @@ void bug1(cv::Mat& img, cv::Point pos_start, cv::Point pos_target)
 			{
 				// find shortest distance from recorded points
 				pos_wall_saved = (std::min_element(circnav.cbegin(), circnav.cend(), [](auto& a, auto& b) {
-        			return a.second < b.second;    
+        			return a.second < b.second;
     			}))->first;
 
 				// reverse vector

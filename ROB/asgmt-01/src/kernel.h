@@ -51,9 +51,6 @@ namespace kernel
 
 	std::optional<cv::Point>
 	check_obstacle(cv::Point pos_start, cv::Point pos_target);
-
-	cv::Point
-	check_wall(cv::Point pos_start, cv::Point move_dir);
 	
 	std::tuple<cv::Point, cv::Point>
 	check_corner(cv::Point pos_start, cv::Point pos_next);

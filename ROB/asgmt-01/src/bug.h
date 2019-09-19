@@ -16,5 +16,5 @@
 
 void init_bug(cv::Mat& img);
 
-void bug1a(cv::Mat& img);
 void bug1(cv::Mat& img, cv::Point pos_start, cv::Point pos_target);
+void bug1_old(cv::Mat& img, cv::Point pos_start, cv::Point pos_target);
