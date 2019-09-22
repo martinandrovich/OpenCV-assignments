@@ -16,6 +16,9 @@ namespace filter
 	playground();
 
 	void
+	log_info(const cv::Mat& img_org, const cv::Mat& img_noisy, const cv::Mat& img_filt);
+
+	void
 	border(cv::Mat& img);
 	
 	void
@@ -53,9 +56,6 @@ namespace filter
 
 	float
 	psnr(const cv::Mat& img1, const cv::Mat& img2);
-
-	void
-	log_info(const cv::Mat& img_before, const cv::Mat& img_after);
 
 	void
 	snr_test(float noise_pct);

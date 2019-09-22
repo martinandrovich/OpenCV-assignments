@@ -6,6 +6,9 @@ set (CMAKE_CXX_STANDARD 17)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 set(vis-asgmt-02_INCLUDE_DIRS "")
 
+# warning levels
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic")
+
 # source folder (src/)
 file(GLOB_RECURSE vis-asgmt-02_SOURCES "src/*.cpp")
 file(GLOB_RECURSE vis-asgmt-02_HEADERS "src/*.hpp")

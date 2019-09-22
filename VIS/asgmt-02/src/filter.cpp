@@ -143,6 +143,17 @@ filter::playground()
 	// https://docs.opencv.org/2.4/modules/core/doc/operations_on_arrays.html
 }
 
+void
+filter::log_info(const cv::Mat& img_org, const cv::Mat& img_noisy, const cv::Mat& img_filt)
+{
+	// log information
+	std::cout
+		<< "image info:\n"
+		<< "  noisy: " << "SNR: " << filter::snr(img_org, img_noisy)	<< " | PSNR: " << filter::psnr(img_org, img_noisy)	<< "\n"
+		<< "  filtr: " << "SNR: " << filter::snr(img_org, img_filt)		<< " | PSNR: " << filter::psnr(img_org, img_filt)	<< "\n"
+		<< std::endl;
+}
+
 float
 filter::snr(const cv::Mat& img_org, const cv::Mat& img_noisy)
 {	
@@ -218,7 +229,7 @@ filter::sap_noise(cv::Mat& img, float snr)
 	auto noise_pct = 100.f / snr;
 	auto num_noise_pts = (unsigned)((img.rows * img.cols * img.channels()) * (noise_pct/100.f));
 
-	for (int i = 0; i < num_noise_pts; i++)
+	for (unsigned i = 0; i < num_noise_pts; i++)
 	{
 		// pick a random row, column and channel
 		auto row = rand() % img.rows;
@@ -642,10 +653,10 @@ filter::rot_mask2(cv::Mat& img)
 					cv::split(rotmask, rotmask_ch);
 
 					// calculate dispersion per channel
-					for (auto k = 0; k < rotmask_ch.size(); k++)
+					for (unsigned k = 0; k < rotmask_ch.size(); k++)
 					{	
 						// calculate channel average
-						auto mask_avg  = (cv::sum(rotmask_ch[k]) * (1.f / num_pixels))[0];
+						auto mask_avg  = cv::sum(rotmask_ch[k])[0] * (1.f / num_pixels);
 
 						// calculate channel dispersion
 						auto disp = filter::dispersion(rotmask_ch[k], mask_avg);
