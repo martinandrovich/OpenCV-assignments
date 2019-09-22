@@ -18,8 +18,8 @@ int main()
 
 	// 1.1
 	// load and display image
-	cv::Mat img = cv::imread("../assets/Astronaut1.jpg");
-	//cv::Mat img = cv::imread("../assets/ORings/ORing01.jpg");
+	//cv::Mat img = cv::imread("../assets/Astronaut1.jpg");
+	cv::Mat img = cv::imread("../assets/ORings/ORing01.jpg");
 	cv::namedWindow("original");
 	cv::imshow("original", img);
 	cv::waitKey();
@@ -53,7 +53,7 @@ int main()
 
 	// extra: rotmask filer
 	auto img_gauss_3 = img_gauss.clone();
-	filter::rot_mask2(img_gauss_3);
+	filter::rot_mask(img_gauss_3);
 	filter::log_info(img, img_gauss, img_gauss_3);
 	cv::namedWindow("gauss rotmask filt");
 	cv::imshow("gauss rotmask filt", img_gauss_3);
