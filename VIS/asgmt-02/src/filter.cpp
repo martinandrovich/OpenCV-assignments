@@ -12,6 +12,8 @@ namespace filter
 	make_gauss_vec(float mu, float sigma, int G = 256);
 }
 
+/* -- private method definitions: ---------------------------------------------------------------------------- */
+
 uint64_t
 filter::pow2sum_pixels(const cv::Mat& img)
 {
@@ -37,7 +39,7 @@ filter::dispersion(const cv::Mat& mask, float mask_avg)
 
 	// number of pixels
 	float num_pixels = mask.rows * mask.cols;
-	float sq_diff, dispersion;
+	float sq_diff_sum, dispersion;
 
 	// sum of squared difference
 	for (auto row = 0; row < mask.rows; row++)
@@ -48,14 +50,97 @@ filter::dispersion(const cv::Mat& mask, float mask_avg)
 			auto sum_ch = cv::sum(mask.at<cv::Vec3i>(row, col))[0];
 
 			// compute squared difference of current pixel and mask average
-			sq_diff += pow(sum_ch - mask_avg, 2);
+			sq_diff_sum += pow(sum_ch - mask_avg, 2);
 		}
 	}
 
 	// average the summed square diff
-	dispersion = (1.f / num_pixels) * sq_diff;
+	dispersion = (1.f / num_pixels) * sq_diff_sum;
 
 	return dispersion;
+}
+
+std::vector<float>
+filter::make_gauss_vec(float mu, float sigma, int G)
+{
+	constexpr auto PI = 3.1415;
+
+	auto min_k = -(G - 1);
+	auto max_k =  (G - 1);
+
+	// p(k)
+	auto gauss = [&](int k){
+		return exp(-pow(k,2) / (2 * pow(sigma,2))) / (sigma * sqrt(2 * PI));
+	};
+
+	// accumulated p values
+	std::vector<float> p_cum;
+
+	// generate vector for range [-max_k ; max_k] = [-G - 1 ; G + 1]
+	// p_cum(k) = p_cum(k - 1) + p(k)
+	// p_cum(-G - 1) = p(-G - 1)
+	for (int i = 0, k = min_k; k < max_k; i++, k++)
+	{
+		auto val = (k == min_k) ? gauss(min_k) : p_cum[i - 1] + gauss(k);
+		p_cum.push_back(val);
+	}
+
+	return std::move(p_cum);
+}
+
+/* -- public method definitions: ----------------------------------------------------------------------------- */
+
+void
+filter::playground()
+{
+	// matrix creation
+	cv::Mat ones = cv::Mat::ones(8, 8, CV_8U);
+
+	// 3D matrix creation
+	cv::Mat mat_3d = cv::Mat(cv::Size(3, 3), CV_8UC3, cv::Scalar(1, 1, 1));
+
+	// scalar multiplications
+	ones = ones * 2;
+
+	// mask
+	// format: col, row, width, height
+	auto mask = ones(cv::Rect(5,1,3,2));
+
+	// submatrix test
+	std::cout << "is mask sub of ones : " << std::boolalpha << mask.isSubmatrix() << std::endl;
+
+	// edit area
+	ones(cv::Rect(2, 2, 4, 4)) = 0;
+
+	// print
+	std::cout << "\n\nones:\n\n" << ones << std::endl;
+	std::cout << "\n\nmask:\n\n" << mask << std::endl;
+
+	// parallel traverse
+	mask.forEach<uchar>([](auto& pxl, auto pos) -> void {
+		auto row = pos[0]; auto col = pos[1];
+		std::cout << "col: " << col << " | row: " << row << " | val: " << (int)pxl << std::endl;
+	});
+
+	// matrices
+	auto rect1  = cv::Mat::ones(3,3, CV_8U);
+	auto rect2  = cv::Mat::ones(3,3, CV_8U) * 2;
+
+	// dot product
+	auto dot    = rect1.dot(rect2);
+
+	// matrix element wise multiplication
+	auto rect3  = rect1.mul(rect2);
+
+	std::cout
+		<< "\n\nrect1:\n\n" 	<< rect1
+		<< "\n\nrect2:\n\n" 	<< rect2
+		<< "\n\ndot:\n\n" 		<< dot
+		<< "\n\nrect3:\n\n" 	<< rect3
+		<< std::endl;
+
+	// for more: operations on arrays
+	// https://docs.opencv.org/2.4/modules/core/doc/operations_on_arrays.html
 }
 
 float
@@ -122,34 +207,6 @@ filter::snr_test(float noise_pct)
 
 	cv::waitKey();
 	cv::destroyAllWindows();
-}
-
-std::vector<float>
-filter::make_gauss_vec(float mu, float sigma, int G)
-{
-	constexpr auto PI = 3.1415;
-
-	auto min_k = -(G - 1);
-	auto max_k =  (G - 1);
-
-	// p(k)
-	auto gauss = [&](int k){
-		return exp(-pow(k,2) / (2 * pow(sigma,2))) / (sigma * sqrt(2 * PI));
-	};
-
-	// accumulated p values
-	std::vector<float> p_cum;
-
-	// generate vector for range [-max_k ; max_k] = [-G - 1 ; G + 1]
-	// p_cum(k) = p_cum(k - 1) + p(k)
-	// p_cum(-G - 1) = p(-G - 1)
-	for (int i = 0, k = min_k; k < max_k; i++, k++)
-	{
-		auto val = (k == min_k) ? gauss(min_k) : p_cum[i - 1] + gauss(k);
-		p_cum.push_back(val);
-	}
-
-	return std::move(p_cum);
 }
 
 void
@@ -240,17 +297,20 @@ filter::gauss_noise(cv::Mat& img, float snr)
 }
 
 void
-filter::conv_filter(cv::Mat& img, size_t size, cv::Mat1i mask)
+filter::convolve(cv::Mat& img, cv::Mat1i mask, float weight)
 {
-	// check that size is odd number
-	if (size % 2 != 1)
+	// check that kernel (mask) has square, odd-numbered size
+	if (mask.cols % 2 != 1 || mask.cols != mask.rows)
 	{
-		std::cerr << "Size " << size << "is not an odd number; please supply such." << std::endl;
+		std::cerr << "Mask of size " << mask.size() << "is not an odd-numberer and/or square; please supply such." << std::endl;
 		return;
 	}
 
 	// store original type
 	auto org_type = img.type();
+
+	// determine size
+	auto size = mask.cols | mask.rows;
 
 	// clone image
 	img.convertTo(img, CV_32SC3);
@@ -263,10 +323,7 @@ filter::conv_filter(cv::Mat& img, size_t size, cv::Mat1i mask)
 	// each channel has same mask; simply done for faster multiplciation
 	cv::Mat mask_3d;
 	std::vector<cv::Mat> masks = { mask, mask, mask };
-	cv::merge(masks, mask_3d);
-
-	// compute weight of mask
-	float weight = 1 / cv::sum(mask)[0];
+	cv::merge(masks, mask_3d);	
 
 	// traverse pixels of image in parallel
 	img.forEach<cv::Point3i>([&](auto& pxl, const int* pos) -> void {
@@ -304,6 +361,38 @@ filter::conv_filter(cv::Mat& img, size_t size, cv::Mat1i mask)
 }
 
 void
+filter::box_filter(cv::Mat& img, size_t size)
+{
+	// generate mask
+	auto avg_mask = cv::Mat::ones(size, size, CV_32SC1);
+
+	// compute weight
+	float weight = 1 / cv::sum(avg_mask)[0];
+
+	// run convolution with local avg mask
+	filter::convolve(img, avg_mask, weight);
+}
+
+void
+filter::gauss_filter(cv::Mat& img, float sigma)
+{
+
+	// generate gauss distribution
+	int gauss_data[] =	{ 1, 2, 1, 
+						  2, 4, 2,
+						  1, 2, 1 };
+
+	// generate gauss mask matrix
+	auto gauss_mask = cv::Mat(3, 3, CV_32SC1, gauss_data);
+
+	// compute weight
+	float weight = 1 / cv::sum(gauss_mask)[0];
+
+	// run convolution with gauss mask
+	filter::convolve(img, gauss_mask, weight);
+}
+
+void
 filter::rot_mask(cv::Mat& img)
 {
 	// store original type
@@ -313,9 +402,8 @@ filter::rot_mask(cv::Mat& img)
 	img.convertTo(img, CV_32SC3);
 	cv::Mat img_clone = img.clone();
 
-	// mask
+	// uniform mask
 	auto  mask = cv::Mat::ones(3, 3, CV_32SC1);
-	float weight = 1 / cv::sum(mask)[0];
 
 	// create 3D mask from 1D mask
 	// each channel has same mask; simply done for faster multiplciation
@@ -354,12 +442,12 @@ filter::rot_mask(cv::Mat& img)
 			{
 				for (auto region_col = 0; region_col < kernel_size; region_col++)
 				{
-					//auto rotmask = channels[0](cv::Rect(j, i, kernel_size, kernel_size));
 					// select rotation mask from region
 					auto rotmask = region(cv::Rect(region_col, region_row, kernel_size, kernel_size));
+					float num_pixels = rotmask.rows * rotmask.cols;
 
 					// calculate mask average for each channel and sum it
-					auto vec_avg  = cv::sum(rotmask.mul(mask_3d)) * weight;
+					auto vec_avg  = cv::sum(rotmask.mul(mask_3d)) * (1.f / num_pixels);
 					auto mask_avg = vec_avg[0] + vec_avg[1] + vec_avg[2]; 
 					
 					// calculate dispersion
@@ -378,6 +466,203 @@ filter::rot_mask(cv::Mat& img)
 			for (auto k = 0; k < 3; k++)
 				img_clone.at<cv::Vec3i>(row, col)[k] = (int)best_avg[k];
 
+		}
+	}
+
+	// overwrite image with new and convert back
+	img.release();
+	img_clone.convertTo(img, org_type);
+}
+
+void
+filter::median_filter(cv::Mat& img, size_t size)
+{
+	// store original type
+	auto org_type = img.type();
+
+	// clone image
+	img.convertTo(img, CV_32SC3);
+	cv::Mat img_clone = img.clone();
+
+	// calculate offset
+	int offset = (size - 1) / 2;
+
+	// traverse pixels of image
+	for (auto row = 0; row < img.rows; row++)
+	{
+		for (auto col = 0; col < img.cols; col++)
+		{
+
+			// bounds checking for whole region
+			if (row - offset < 0 || row + offset >= img.rows) continue;
+			if (col - offset < 0 || col + offset >= img.cols) continue;
+
+			// define kernel
+			cv::Mat kernel = img(cv::Rect(col - offset, row - offset, size, size));
+
+			// split kernel into channels
+			std::vector<cv::Mat> kernel_ch;
+			cv::split(kernel, kernel_ch);
+
+			// compute median per channel
+			for (auto k = 0; k < kernel_ch.size(); k++)
+			{
+				// convert 1D matix to vector
+				std::vector<int> kernel_vec;
+				kernel_vec.assign((int*)kernel_ch[k].data, (int*)kernel_ch[k].data + kernel_ch[k].total());
+
+				// sort vector
+				std::sort(kernel_vec.begin(), kernel_vec.end());
+
+				auto vecsize = kernel_vec.size();
+
+				// access middle element (median)
+				//auto median = kernel_vec[kernel_vec.size() / 2];
+				auto median = (vecsize % 2) ? (kernel_vec[vecsize / 2]) : ((kernel_vec[vecsize / 2 - 1] + kernel_vec[vecsize / 2]) / 2) ;
+
+				// apply median to channel
+				img_clone.at<cv::Vec3i>(row, col)[k] = median;
+			}				
+		}
+	}
+
+	// overwrite image with new and convert back
+	img.release();
+	img_clone.convertTo(img, org_type);
+}
+
+void
+filter::mediangray_filter(cv::Mat& img, size_t size)
+{
+	// store original type
+	auto org_type = img.type();
+
+	// clone image
+	img.convertTo(img, CV_32SC3);
+	cv::Mat img_clone = img.clone();
+
+	// calculate offset
+	int offset = (size - 1) / 2;
+
+	// traverse pixels of image
+	for (auto row = 0; row < img.rows; row++)
+	{
+		for (auto col = 0; col < img.cols; col++)
+		{
+
+			// bounds checking for whole region
+			if (row - offset < 0 || row + offset >= img.rows) continue;
+			if (col - offset < 0 || col + offset >= img.cols) continue;
+
+			// define kernel
+			cv::Mat kernel = img(cv::Rect(col - offset, row - offset, size, size));
+			cv::Mat kernel_1C;
+
+			// sum up channels into a single matrix
+			// transform 3D matrix into 1D matrix where each channel was summed
+			cv::transform(kernel, kernel_1C, cv::Matx<int,1, 3>(1,1,1));
+
+			// convert 1D matix to vector
+			std::vector<int> kernel_vec;
+			kernel_vec.assign((int*)kernel_1C.data, (int*)kernel_1C.data + kernel_1C.total());
+
+			// sort vector
+			std::sort(kernel_vec.begin(), kernel_vec.end());
+
+			// access middle element (median)
+			auto median = kernel_vec[kernel_vec.size() / 2];
+
+			// average the median for channels
+			auto avg_median = median * (1.f / img.channels());
+
+			// apply to cloned image channel-wise
+			for (auto k = 0; k < img.channels(); k++)
+				img_clone.at<cv::Vec3i>(row, col)[k] = avg_median;
+
+		}
+	}
+
+	// overwrite image with new and convert back
+	img.release();
+	img_clone.convertTo(img, org_type);
+}
+
+void
+filter::rot_mask2(cv::Mat& img)
+{
+	// store original type
+	auto org_type = img.type();
+
+	// clone image
+	img.convertTo(img, CV_32SC3);
+	cv::Mat img_clone = img.clone();
+
+	// uniform mask
+	auto  mask = cv::Mat::ones(3, 3, CV_32SC1);
+
+	// compute sizes and offset
+	// 3x3 kernel -> 5x5 region
+	int kernel_size		= 3;
+	int region_size		= (kernel_size * 2) - 1;
+	int kernel_offset	= (kernel_size - 1) / 2;
+	int region_offset	= (region_size - 1) / 2;
+
+	// traverse pixels of image
+	for (auto row = 0; row < img.rows; row++)
+	{
+		for (auto col = 0; col < img.cols; col++)
+		{
+
+			// bounds checking for whole region
+			if (row - region_offset < 0 || row + region_offset >= img.rows) continue;
+			if (col - region_offset < 0 || col + region_offset >= img.cols) continue;
+
+			// define region
+			auto region = img(cv::Rect(col - region_offset, row - region_offset, region_size, region_size));
+
+			// iterate 9 possible rotation masks
+			// starting with rot mask in bottom-right corner of region
+
+			// map of dispersions and the assotiated local averages
+			std::vector<std::map<float, double>> vecmap_disp(region.channels());
+
+			// calculate dispersions for each of the 9 possible rotation masks
+			for (auto region_row = 0; region_row < kernel_size; region_row++)
+			{
+				for (auto region_col = 0; region_col < kernel_size; region_col++)
+				{
+					// vector for channels
+					std::vector<cv::Mat> rotmask_ch;
+					
+					// select rotation mask from region
+					auto rotmask = region(cv::Rect(region_col, region_row, kernel_size, kernel_size));
+					float num_pixels = rotmask.rows * rotmask.cols;
+
+					// split rotmask into channels
+					cv::split(rotmask, rotmask_ch);
+
+					// calculate dispersion per channel
+					for (auto k = 0; k < rotmask_ch.size(); k++)
+					{	
+						// calculate channel average
+						auto mask_avg  = (cv::sum(rotmask_ch[k]) * (1.f / num_pixels))[0];
+
+						// calculate channel dispersion
+						auto disp = filter::dispersion(rotmask_ch[k], mask_avg);
+
+						// add to vector of maps
+						vecmap_disp[k][disp] = mask_avg;
+					}
+				}
+			}
+
+			// select the best local average with the minimum dispersion per channel
+			for (auto k = 0; k < vecmap_disp.size(); k++)
+			{
+				auto best_avg = vecmap_disp[k].begin()->second;
+				img_clone.at<cv::Vec3i>(row, col)[k] = (int)best_avg;
+			}
+				
 		}
 	}
 
