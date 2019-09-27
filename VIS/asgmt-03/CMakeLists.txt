@@ -29,6 +29,6 @@ add_executable(vis-asgmt-03 main.cpp ${vis-asgmt-03_SOURCES})
 # link libraries
 target_link_libraries(vis-asgmt-03 PRIVATE ${OpenCV_LIBS})
 target_include_directories(vis-asgmt-03 PRIVATE ${PYTHON_INCLUDE_DIRS})
-target_link_libraries(vis-asgmt-03 ${PYTHON_LIBRARIES})
+target_link_libraries(vis-asgmt-03 PRIVATE ${PYTHON_LIBRARIES})
 
 list(REMOVE_DUPLICATES vis-asgmt-03_INCLUDE_DIRS)

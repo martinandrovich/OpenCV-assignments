@@ -31,7 +31,7 @@ namespace hist
 	equalize(cv::Mat& img);
 
 	void
-	compare(const cv::Mat& img1, const cv::Mat& img2);
+	compare(const cv::Mat& img1, const cv::Mat& img2, int method = CV_COMP_CORREL);
 
 	template <class ... Args> void
 	compare(const cv::Mat& img_org, Args ... imgs)

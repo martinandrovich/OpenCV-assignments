@@ -286,12 +286,10 @@ hist::equalize(cv::Mat& img)
 }
 
 void
-hist::compare(const cv::Mat& img1, const cv::Mat& img2)
+hist::compare(const cv::Mat& img1, const cv::Mat& img2, int method)
 {
 	// ensure color image
 	assert(img1.channels() == 3 && img2.channels() == 3);
-
-	//,  int method = CV_COMP_CORREL
 
 	// calculate 3D histograms
 	auto hist1 = hist::get_3dhist(img1);
@@ -301,7 +299,7 @@ hist::compare(const cv::Mat& img1, const cv::Mat& img2)
 	normalize(hist1, hist1, 100.0/(img1.total()), 0, cv::NORM_MINMAX, -1, cv::Mat());
 
 	// calculate matching score
-	auto matching_score = cv::compareHist(hist1, hist2, CV_COMP_CORREL);
+	auto matching_score = cv::compareHist(hist1, hist2, method);
 
 	// print score
 	std::cout << matching_score << std::endl;
