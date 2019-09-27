@@ -51,10 +51,18 @@ int main()
 
 	// 1.2
 	// histogram comparison
-	cv::Mat img2 = cv::imread("../assets/Astronaut1.jpg");
-	cv::Mat img3 = cv::imread("../assets/Astronaut2.jpg");
-	cv::Mat img4 = cv::imread("../assets/ORings/ORing01.jpg");
-	hist::compare(img2, img3, img4);
+	cv::Mat img_astr1 = cv::imread("../assets/Astronaut1.jpg");
+	cv::Mat img_astr2 = cv::imread("../assets/Astronaut2.jpg");
+	cv::Mat img_oring1 = cv::imread("../assets/ORings/ORing01.jpg");
+
+	hist::compare(img_astr1, img_astr2, img_oring1);
+
+	// 1.3
+	// back projection
+	cv::Mat img_spoon_sample = cv::imread("../assets/BabyFood/BabyFood-Sample-Hist0.JPG");
+	cv::Mat img_spoon1 = cv::imread("../assets/BabyFood/BabyFood-Sample1.JPG");
+
+	hist::back_proj(img_spoon_sample, img_spoon1, 4);
 
 	// exit
 	return 0;

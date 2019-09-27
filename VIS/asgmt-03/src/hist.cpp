@@ -16,7 +16,7 @@ namespace hist
 	get_hist_vec_1c(const cv::Mat& img, channel ch);
 
 	cv::Mat
-	get_3dhist(const cv::Mat& img);
+	get_3dhist(const cv::Mat& img, int bin_size = 8);
 
 	void
 	plot_1c_histogram(const cv::Mat& img);
@@ -60,30 +60,18 @@ hist::get_hist_vec_1c(const cv::Mat& img, channel ch)
 }
 
 cv::Mat
-hist::get_3dhist(const cv::Mat& img)
+hist::get_3dhist(const cv::Mat& img, int bin_size)
 {
 	cv::Mat hist_3d;
 	
 	// setup computation
-	// int channel_numbers[] = { 0, 1, 2 };
-	// int* number_bins = new int[img.channels()];
-
-	// for (uint ch = 0; ch < img.channels(); ch++)
-	// 	number_bins[ch] = 4;
-
-	// float ch_range[] = {0.f, 255.f};
-	// const float* channel_ranges[] = { ch_range, ch_range, ch_range };
-
 	float ch_range[] = { 0, 256 };
-	const float* etendu[] = { ch_range, ch_range,ch_range };
-	int hist_bins = 32;
-	int hist_size[] = { hist_bins, hist_bins , hist_bins  };
-	int channels[] = { 2, 1, 0 };
+	const float* etendu[] = { ch_range, ch_range, ch_range };
+	int hist_size[] = { bin_size, bin_size , bin_size };
+	int channels[] = { 0, 1, 2 };
 
 	// compute histogram
 	cv::calcHist(&img, 1, channels, cv::Mat(), hist_3d, 3, hist_size, etendu, true, false);
-
-	//cv::calcHist(&img, 1, channel_numbers, cv::Mat(), hist_3d, img.channels(), number_bins, channel_ranges);
 
 	return hist_3d;
 }
@@ -303,4 +291,37 @@ hist::compare(const cv::Mat& img1, const cv::Mat& img2, int method)
 
 	// print score
 	std::cout << matching_score << std::endl;
+}
+
+void
+hist::back_proj(cv::Mat& img_sample, cv::Mat& img, int bin_size)
+{
+
+	// convert to HSV
+	cvtColor(img, img, cv::COLOR_BGR2HSV);
+	cvtColor(img_sample, img_sample, cv::COLOR_BGR2HSV);
+	
+	// define histogram parameters
+	int   s_bins          = bin_size;              // sizes of bins
+	int   h_bins          = bin_size;              //
+	int   hist_size[]     = { h_bins, s_bins };    //
+	float h_range[]       = { 0, 180 };            // range of H channel
+	float s_range[]       = { 0, 256 };            // range of S channel
+	const float* ranges[] = { h_range, s_range };  // ranges
+	int   channels[]      = { 0, 1 };              // channels
+
+	// create histogram
+	cv::Mat hist;
+	cv::calcHist(&img_sample, 1, channels, cv::Mat(), hist, 2, hist_size, ranges, true, false);
+
+	// normalize histogram
+	cv::normalize(hist, hist, 0, 255, cv::NORM_MINMAX, -1, cv::Mat());
+
+	/// compute back projection
+	cv::Mat img_backproj;
+	cv::calcBackProject(&img, 1, channels, hist, img_backproj, ranges);
+
+	/// show back projection
+	cv::imshow("back proj", img_backproj);
+	cv::waitKey();
 }

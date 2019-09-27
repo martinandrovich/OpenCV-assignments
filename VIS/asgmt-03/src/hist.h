@@ -11,6 +11,7 @@
 #include <opencv2/plot.hpp>
 
 #define WITHOUT_NUMPY
+#pragma GCC diagnostic ignored "-Wregister"
 #include "../lib/matplotlibcpp.h"
 
 namespace hist
@@ -47,4 +48,7 @@ namespace hist
 			hist::compare(img_org, img);
 		}
 	}
+
+	void
+	back_proj(cv::Mat& img_sample, cv::Mat& img, int bin_size = 8);
 }
