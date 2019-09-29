@@ -33,7 +33,7 @@ hist::get_hist_vec_1c(const cv::Mat& img, channel ch)
 	constexpr auto max_intensity = 256;
 
 	// check that img has the requested channel
-	assert((img.channels() - 1) >= (unsigned)ch);
+	assert((img.channels() - 1) >= (int)ch);
 
 	// initialize histogram to value 0
 	std::vector<int> hist_vec(max_intensity, 0);
@@ -249,9 +249,9 @@ hist::equalize(cv::Mat& img)
 
 	// aplly LUT
 
-	for (uint row = 0; row < img.rows; row++)
+	for (int row = 0; row < img.rows; row++)
 	{
-		for (uint col = 0; col < img.cols; col++)
+		for (int col = 0; col < img.cols; col++)
 		{	
 			if (trgt_ch == channel::GRAY)
 			{
@@ -294,12 +294,14 @@ hist::compare(const cv::Mat& img1, const cv::Mat& img2, int method)
 }
 
 void
-hist::back_proj(cv::Mat& img_sample, cv::Mat& img, int bin_size)
+hist::back_proj(const cv::Mat& img_sample, const cv::Mat& img, int bin_size)
 {
 
 	// convert to HSV
-	cvtColor(img, img, cv::COLOR_BGR2HSV);
-	cvtColor(img_sample, img_sample, cv::COLOR_BGR2HSV);
+	cv::Mat img_hsv, img_sample_hsv;
+
+	cvtColor(img, img_hsv, cv::COLOR_BGR2HSV);
+	cvtColor(img_sample, img_sample_hsv, cv::COLOR_BGR2HSV);
 	
 	// define histogram parameters
 	int   s_bins          = bin_size;              // sizes of bins
@@ -312,14 +314,14 @@ hist::back_proj(cv::Mat& img_sample, cv::Mat& img, int bin_size)
 
 	// create histogram
 	cv::Mat hist;
-	cv::calcHist(&img_sample, 1, channels, cv::Mat(), hist, 2, hist_size, ranges, true, false);
+	cv::calcHist(&img_sample_hsv, 1, channels, cv::Mat(), hist, 2, hist_size, ranges, true, false);
 
 	// normalize histogram
 	cv::normalize(hist, hist, 0, 255, cv::NORM_MINMAX, -1, cv::Mat());
 
 	/// compute back projection
 	cv::Mat img_backproj;
-	cv::calcBackProject(&img, 1, channels, hist, img_backproj, ranges);
+	cv::calcBackProject(&img_hsv, 1, channels, hist, img_backproj, ranges);
 
 	/// show back projection
 	cv::imshow("back proj", img_backproj);
