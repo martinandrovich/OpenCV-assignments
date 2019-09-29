@@ -1,11 +1,8 @@
 #include <iostream>
-#include "fl/Headers.h"
 
 int main()
 {
-
-	fl::Engine* hybrid = fl::Console::hybrid();
-
+	// stall
 	std::cin.get();
 
 	// exit
